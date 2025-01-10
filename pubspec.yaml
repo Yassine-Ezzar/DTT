@@ -41,6 +41,8 @@ dependencies:
   flutter_svg: ^1.1.6
   geolocator: ^9.0.1
   url_launcher: ^6.0.10
+  flutter_launcher_icons: ^0.13.1
+  responsive_sizer: ^3.1.1
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +67,7 @@ flutter:
      - assets/Fonts/
      - assets/Images/one.png
      - assets/Images/dtt_banner/hdpi/dtt_banner.png
+     - assets/Images/launcher_icon.png
 
 
   fonts:
@@ -83,3 +86,9 @@ flutter:
         - asset: assets/Fonts/GothamSSm-XLight.otf
         - asset: assets/Fonts/GothamSSm-XLightItalic.otf
           weight: 700
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/Images/launcher_icon.png"

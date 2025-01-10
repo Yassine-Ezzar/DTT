@@ -35,11 +35,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (response.statusCode == 200) {
       final List<dynamic> fetchedHouses = jsonDecode(response.body);
 
-      // Sorting the houses by price (cheapest first)
+      
       fetchedHouses.sort((a, b) {
         double priceA = (a['price'] as num?)?.toDouble() ?? 0.0;
         double priceB = (b['price'] as num?)?.toDouble() ?? 0.0;
-        return priceA.compareTo(priceB);  // ascending order
+        return priceA.compareTo(priceB);  
       });
 
       setState(() {
@@ -191,140 +191,160 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  Widget _buildHouseList() {
-    return ListView.builder(
-      itemCount: filteredHouses.length,
-      itemBuilder: (context, index) {
-        var house = filteredHouses[index];
+ Widget _buildHouseList() {
+  return AnimatedList(
+    key: GlobalKey<AnimatedListState>(),
+    initialItemCount: filteredHouses.length,
+    itemBuilder: (context, index, animation) {
+      var house = filteredHouses[index];
 
-        double latitude = (house['latitude'] as num?)?.toDouble() ?? 0.0;
-        double longitude = (house['longitude'] as num?)?.toDouble() ?? 0.0;
+      double latitude = (house['latitude'] as num?)?.toDouble() ?? 0.0;
+      double longitude = (house['longitude'] as num?)?.toDouble() ?? 0.0;
 
-        double distance = _calculateDistance(latitude, longitude);
+      double distance = _calculateDistance(latitude, longitude);
 
-        String imageUrl = 'assets/Images/one.png';
+      String imageUrl = 'assets/Images/one.png';
 
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HouseDetailScreen(
-                  price: (house['price'] as num?)?.toDouble() ?? 0.0,
-                  description: house['description'] ?? 'No description available',
-                  imageUrl: imageUrl,  
-                  bedrooms: house['bedrooms'] ?? 0,
-                  bathrooms: house['bathrooms'] ?? 0,
-                  size: house['size'] ?? 0,
-                  distance: distance,
-                  latitude: latitude,
-                  longitude: longitude,
-                ),
-              ),
-            );
-          },
-          child: Card(
-            color: Colors.white,
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(  
-                      imageUrl,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '\$${house['price']}',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: const Color(0xFFCC000000),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          house['zip'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: [
-                            SvgPicture.asset(
-                              'assets/Icons/ic_bed.svg',
-                              width: 16,
-                              height: 16,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '${house['bedrooms'] ?? 0}',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            SizedBox(width: 8),
-                            SvgPicture.asset(
-                              'assets/Icons/ic_bath.svg',
-                              width: 16,
-                              height: 16,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '${house['bathrooms'] ?? 0}',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            SizedBox(width: 8),
-                            SvgPicture.asset(
-                              'assets/Icons/ic_layers.svg',
-                              width: 16,
-                              height: 16,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '${house['size'] ?? 0} m²',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            SizedBox(width: 8),
-                            SvgPicture.asset(
-                              'assets/Icons/ic_location.svg',
-                              width: 16,
-                              height: 16,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '${distance.toStringAsFixed(2)} km',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      return _buildAnimatedListItem(
+        house: house,
+        animation: animation,
+        distance: distance,
+        imageUrl: imageUrl,
+      );
+    },
+  );
+}
+
+Widget _buildAnimatedListItem({
+  required dynamic house,
+  required Animation<double> animation,
+  required double distance,
+  required String imageUrl,
+}) {
+  return SizeTransition(
+    sizeFactor: animation,
+    axis: Axis.vertical,
+    child: GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HouseDetailScreen(
+              price: (house['price'] as num?)?.toDouble() ?? 0.0,
+              description: house['description'] ?? 'No description available',
+              imageUrl: imageUrl,
+              bedrooms: house['bedrooms'] ?? 0,
+              bathrooms: house['bathrooms'] ?? 0,
+              size: house['size'] ?? 0,
+              distance: distance,
+              latitude: (house['latitude'] as num?)?.toDouble() ?? 0.0,
+              longitude: (house['longitude'] as num?)?.toDouble() ?? 0.0,
             ),
           ),
         );
       },
-    );
-  }
+      child: Card(
+        color: Colors.white,
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  imageUrl,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '\$${house['price']}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: const Color(0xFFCC000000),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      house['zip'] ?? '',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/Icons/ic_bed.svg',
+                          width: 16,
+                          height: 16,
+                          color: Colors.grey[600],
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${house['bedrooms'] ?? 0}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(width: 8),
+                        SvgPicture.asset(
+                          'assets/Icons/ic_bath.svg',
+                          width: 16,
+                          height: 16,
+                          color: Colors.grey[600],
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${house['bathrooms'] ?? 0}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(width: 8),
+                        SvgPicture.asset(
+                          'assets/Icons/ic_layers.svg',
+                          width: 16,
+                          height: 16,
+                          color: Colors.grey[600],
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${house['size'] ?? 0} m²',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(width: 8),
+                        SvgPicture.asset(
+                          'assets/Icons/ic_location.svg',
+                          width: 16,
+                          height: 16,
+                          color: Colors.grey[600],
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${distance.toStringAsFixed(2)} km',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 }

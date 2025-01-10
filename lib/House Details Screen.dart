@@ -30,14 +30,50 @@ class HouseDetailScreen extends StatefulWidget {
   _HouseDetailScreenState createState() => _HouseDetailScreenState();
 }
 
-class _HouseDetailScreenState extends State<HouseDetailScreen> {
+class _HouseDetailScreenState extends State<HouseDetailScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
   bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize the animation controller
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
+    
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void toggleFavorite() {
     setState(() {
       isFavorite = !isFavorite;
     });
-    
   }
 
   @override
@@ -46,14 +82,20 @@ class _HouseDetailScreenState extends State<HouseDetailScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: SvgPicture.asset(
-            'assets/Icons/ic_back.svg',
-            width: 24,
-            height: 24,
-            color: Colors.white,
+        leading: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: IconButton(
+              icon: SvgPicture.asset(
+                'assets/Icons/ic_back.svg',
+                width: 24,
+                height: 24,
+                color: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
-          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       extendBodyBehindAppBar: true,
@@ -63,11 +105,14 @@ class _HouseDetailScreenState extends State<HouseDetailScreen> {
             children: [
               Stack(
                 children: [
-                  Image.asset(
-                    widget.imageUrl,
-                    height: 300,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+                  Hero(
+                    tag: widget.imageUrl,
+                    child: Image.asset(
+                      widget.imageUrl,
+                      height: 300,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   Positioned(
                     bottom: 0,
@@ -102,83 +147,99 @@ class _HouseDetailScreenState extends State<HouseDetailScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '\$${widget.price.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildIconInfo(
+                                    'assets/Icons/ic_bed.svg',
+                                    '${widget.bedrooms} Beds'),
+                                _buildIconInfo(
+                                    'assets/Icons/ic_bath.svg',
+                                    '${widget.bathrooms} Baths'),
+                                _buildIconInfo('assets/Icons/ic_layers.svg',
+                                    '${widget.size} m²'),
+                                _buildIconInfo('assets/Icons/ic_location.svg',
+                                    '${widget.distance.toStringAsFixed(2)} km'),
+                              ],
+                            ),
+                            SizedBox(height: 24),
                             Text(
-                              '\$${widget.price.toStringAsFixed(0)}',
+                              'Description',
                               style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.black87,
                               ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildIconInfo('assets/Icons/ic_bed.svg', '${widget.bedrooms} Beds'),
-                            _buildIconInfo('assets/Icons/ic_bath.svg', '${widget.bathrooms} Baths'),
-                            _buildIconInfo('assets/Icons/ic_layers.svg', '${widget.size} m²'),
-                            _buildIconInfo('assets/Icons/ic_location.svg', '${widget.distance.toStringAsFixed(2)} km'),
-                          ],
-                        ),
-                        SizedBox(height: 24),
-                        Text(
-                          'Description',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          widget.description,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[700],
-                            height: 1.5,
-                          ),
-                        ),
-                        SizedBox(height: 24),
-                        Text(
-                          'Location',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            height: 200,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target: LatLng(widget.latitude, widget.longitude),
-                                zoom: 12,
+                            SizedBox(height: 8),
+                            Text(
+                              widget.description,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                                height: 1.5,
                               ),
-                              markers: {
-                                Marker(
-                                  markerId: MarkerId('houseLocation'),
-                                  position: LatLng(widget.latitude, widget.longitude),
-                                ),
-                              },
                             ),
-                          ),
+                            SizedBox(height: 24),
+                            Text(
+                              'Location',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.grey.shade300),
+                                ),
+                                child: GoogleMap(
+                                  initialCameraPosition: CameraPosition(
+                                    target: LatLng(widget.latitude,
+                                        widget.longitude),
+                                    zoom: 12,
+                                  ),
+                                  markers: {
+                                    Marker(
+                                      markerId: MarkerId('houseLocation'),
+                                      position: LatLng(widget.latitude,
+                                          widget.longitude),
+                                    ),
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
